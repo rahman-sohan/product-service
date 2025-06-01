@@ -1,4 +1,4 @@
-export interface TokenPayload {
+export interface UserTokenData {
     id: string;
     email: string;
     firstName: string;
@@ -10,7 +10,7 @@ export interface TokenPayload {
 
 export interface TokenValidationResponse {
     isValid: boolean;
-    user?: TokenPayload;
+    user?: UserTokenData;
     error?: string;
     message?: string;
 }

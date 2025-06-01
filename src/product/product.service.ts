@@ -6,7 +6,7 @@ import { UpdateProductDto } from '../common/dto/update-product.dto';
 import { MessageBrokerRabbitmqService } from '../message-broker-rabbitmq/message-broker-rabbitmq.service';
 import { RabbitMQListenersService } from '../message-broker-rabbitmq/rabbit-listeners.service';
 import { MessagePatterns } from '../common/constants/message-patterns';
-import { TokenPayload } from '../common/interfaces/auth.interface';
+import { UserTokenData } from '../common/interfaces/auth.interface';
 import { Product } from '../database/entities/product.entity';
 
 @Injectable()
@@ -15,51 +15,24 @@ export class ProductService {
 
     constructor(
         private readonly databaseService: DatabaseService,
-        private readonly messageBroker: MessageBrokerRabbitmqService,
-        private readonly rabbitMQListenersService: RabbitMQListenersService,
+        private readonly messageBroker: MessageBrokerRabbitmqService
     ) {}
 
-    async validateUserToken(token: string): Promise<TokenPayload> {
-        try {
-            const response = await this.rabbitMQListenersService.validateToken(token);
-
-            if (!response.isValid || !response.user) {
-                throw new UnauthorizedException('Invalid token');
-            }
-
-            return response.user;
-        } catch (error) {
-            this.logger.error(`Error validating token: ${error.message}`);
-            throw new UnauthorizedException('Invalid or expired token');
-        }
-    }
-
-    async getUserFromRequest(req: Request): Promise<TokenPayload> {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            throw new UnauthorizedException('Authorization token is missing');
-        }
-
-        const token = authHeader.split(' ')[1];
-        return this.validateUserToken(token);
-    }
-
-    async createProduct(userId: string, createProductPayload: CreateProductDto): Promise<Product> {
+    async createProduct(user: UserTokenData, createProductPayload: CreateProductDto): Promise<any> {
         
         const productData = {
             ...createProductPayload,
-            product_owner_id: userId,
+            product_owner_id: user.id,
         };
 
         const product = await this.databaseService.createNewProduct(productData);
 
         try {
-            await this.messageBroker.publishToAuthExchange({
+            const returnValue = await this.messageBroker.publishToAuthExchange({
                 pattern: MessagePatterns.PRODUCT_CREATED,
                 data: {
                     productId: product._id,
-                    userId,
+                    userId: user.id,
                     product: {
                         name: product.name,
                         price: product.price,
@@ -68,11 +41,21 @@ export class ProductService {
                     timestamp: new Date().toISOString(),
                 },
             });
+            
         } catch (error) {
             this.logger.error(`Failed to publish product created event: ${error.message}`);
         }
 
-        return product;
+        return {
+            message: 'Product created successfully',
+            product: {
+                id: product._id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                product_owner_id: product.product_owner_id,
+            },
+        };
     }
 
     async getAllProducts(): Promise<Product[]> {

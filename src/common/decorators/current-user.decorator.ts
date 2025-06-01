@@ -1,8 +1,8 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { TokenPayload } from '../interfaces/auth.interface';
+import { UserTokenData } from '../interfaces/auth.interface';
 
 export const CurrentUser = createParamDecorator(
-    (data: unknown, ctx: ExecutionContext): TokenPayload => {
+    (data: unknown, ctx: ExecutionContext): UserTokenData => {
         const request = ctx.switchToHttp().getRequest();
         return request.user;
     },

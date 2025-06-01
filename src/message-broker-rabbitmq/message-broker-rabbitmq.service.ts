@@ -36,6 +36,4 @@ export class MessageBrokerRabbitmqService {
             throw error;
         }
     }
-    
-    // Token validation moved to RabbitMQListenersService
 }

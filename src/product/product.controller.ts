@@ -6,7 +6,7 @@ import { AllExceptionsFilter } from '../common/errors/allException.filter';
 import { Product } from '../database/entities/product.entity';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { TokenPayload } from '../common/interfaces/auth.interface';
+import { UserTokenData } from '../common/interfaces/auth.interface';
 
 @Controller('products')
 @UseFilters(AllExceptionsFilter)
@@ -17,8 +17,8 @@ export class ProductController {
 
     @Post()
     @UseGuards(AuthGuard)
-    async create(@Body() createProductPayload: CreateProductDto, @CurrentUser() user: TokenPayload): Promise<Product> {
-        return this.productService.createProduct(user.id, createProductPayload);
+    async create(@Body() createProductPayload: CreateProductDto, @CurrentUser() user: UserTokenData): Promise<Product> {
+        return this.productService.createProduct(user, createProductPayload);
     }
 
     @Get()
@@ -42,7 +42,7 @@ export class ProductController {
     async update(
         @Param('id') id: string,
         @Body() updateProductDto: UpdateProductDto,
-        @CurrentUser() user: TokenPayload,
+        @CurrentUser() user: UserTokenData,
     ): Promise<Product> {
         this.logger.log(`Update product with ID ${id} request received`);
         return this.productService.updateProduct(id, user.id, updateProductDto);
@@ -52,7 +52,7 @@ export class ProductController {
     @UseGuards(AuthGuard)
     async remove(
         @Param('id') id: string,
-        @CurrentUser() user: TokenPayload,
+        @CurrentUser() user: UserTokenData,
     ): Promise<{ message: string }> {
         this.logger.log(`Delete product with ID ${id} request received`);
         await this.productService.deleteProduct(id, user.id);

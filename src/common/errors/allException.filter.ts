@@ -14,8 +14,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     private readonly logger = new Logger(AllExceptionsFilter.name);
 
     catch(exception: any, host: ArgumentsHost) {
-        console.log(exception);
-
+        this.logger.error('An unhandled exception occurred:', exception.message || exception);
         const ctx = host.switchToHttp();
         const request = ctx.getRequest<Request>();
         const response = ctx.getResponse<Response>();
@@ -32,6 +31,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
             return response.status(HttpStatus.NOT_FOUND).json({
                 code: 'E_NOT_FOUND',
                 message: 'Not found',
+                errors: [(exception.getResponse() as any).message],
+            });
+        }
+
+        if (exception.status === HttpStatus.UNAUTHORIZED) {
+            return response.status(HttpStatus.UNAUTHORIZED).json({
+                code: 'E_UNAUTHORIZED',
+                message: 'Unauthorized',
                 errors: [(exception.getResponse() as any).message],
             });
         }
