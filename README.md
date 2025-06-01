@@ -134,46 +134,66 @@ Create a `docker-compose.yml` file in the root directory:
 version: '3.8'
 
 services:
-  product-service:
-    build: .
-    ports:
-      - "3001:3001"
-    environment:
-      - MONGO_URI=mongodb://mongodb:27017/product-service
-      - RABBITMQ_URL=amqp://rabbitmq:5672
-      - JWT_ACCESS_SECRET=your_access_secret_key
-      - JWT_REFRESH_SECRET=your_refresh_secret_key
-      - JWT_ACCESS_EXPIRY=25m
-      - JWT_REFRESH_EXPIRY=7d
-    depends_on:
-      - mongodb
-      - rabbitmq
-    networks:
-      - lyxa-network
-
   mongodb:
     image: mongo:latest
+    container_name: mongodb
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     networks:
-      - lyxa-network
+      - microservices_network
 
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     ports:
       - "5672:5672"
       - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
     networks:
-      - lyxa-network
+      - microservices_network
+
+  auth-service:
+    build:
+      context: ./auth-service
+    container_name: auth-service
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/auth
+      - RABBITMQ_URI=amqp://rabbitmq:5672
+    depends_on:
+      - mongodb
+      - rabbitmq
+    networks:
+      - microservices_network
+
+  product-service:
+    build:
+      context: ./product-service
+    container_name: product-service
+    ports:
+      - "3001:3001"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017/products
+      - RABBITMQ_URI=amqp://rabbitmq:5672
+      - AUTH_SERVICE_URL=http://auth-service:3000
+    depends_on:
+      - mongodb
+      - rabbitmq
+      - auth-service
+    networks:
+      - microservices_network
 
 networks:
-  lyxa-network:
+  microservices_network:
     driver: bridge
 
 volumes:
   mongodb_data:
+  rabbitmq_data:
 ```
 
 Then, run:
