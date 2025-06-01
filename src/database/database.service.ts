@@ -48,7 +48,23 @@ export class DatabaseService {
         return this.productModel.findOne({ email });
     }
 
-    async findAllProducts(): Promise<Product[]> {
-        return this.productModel.find();
+    async findAllProducts({ page, limit }: { page: number; limit: number }): Promise<Product[]> {
+        const skip = (page - 1) * limit;
+
+        return this.productModel.find().skip(skip).limit(limit).lean().exec();
+    }
+
+    async findProductByUserId({
+        userId,
+        page,
+        limit,
+    }: {
+        userId: string;
+        page: number;
+        limit: number;
+    }): Promise<Product[]> {
+        const skip = (page - 1) * limit;
+
+        return this.productModel.find({ product_owner_id: userId }).skip(skip).limit(limit).lean().exec();
     }
 }

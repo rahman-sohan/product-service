@@ -1,10 +1,8 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { Request } from 'express';
 import { DatabaseService } from '../database/database.service';
 import { CreateProductDto } from '../common/dto/create-product.dto';
 import { UpdateProductDto } from '../common/dto/update-product.dto';
 import { MessageBrokerRabbitmqService } from '../message-broker-rabbitmq/message-broker-rabbitmq.service';
-import { RabbitMQListenersService } from '../message-broker-rabbitmq/rabbit-listeners.service';
 import { MessagePatterns } from '../common/constants/message-patterns';
 import { UserTokenData } from '../common/interfaces/auth.interface';
 import { Product } from '../database/entities/product.entity';
@@ -58,25 +56,31 @@ export class ProductService {
         };
     }
 
-    async getAllProducts(): Promise<Product[]> {
-        this.logger.log('Fetching all products');
-        return this.databaseService.findAllProducts();
+    async getAllProducts(params:{ page: number, limit: number }): Promise<Product[]> {
+        const { page, limit } = params;
+
+        return this.databaseService.findAllProducts({ page, limit });
     }
 
-    async getProductsByUserId(userId: string): Promise<Product[]> {
-        this.logger.log(`Fetching products for user ${userId}`);
-        const products = await this.databaseService.findAllProducts();
-        return products.filter((product) => product.product_owner_id === userId);
+    async getProductsByUserId(user: UserTokenData, page: number, limit: number): Promise<Product[]> {
+
+        const products = await this.databaseService.findProductByUserId({
+            userId: user.id,
+            page,
+            limit
+        });
+
+        return products;
     }
 
     async getProductById(productId: string, userId?: string): Promise<Product> {
-        this.logger.log(`Fetching product with ID ${productId}`);
         const product = await this.databaseService.findProductById(productId);
 
         if (userId && product.product_owner_id !== userId) {
             this.logger.warn(
                 `User ${userId} attempted to access product ${productId} they don't own`,
             );
+            
             throw new UnauthorizedException('You do not have access to this product');
         }
 

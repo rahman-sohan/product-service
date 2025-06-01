@@ -1,4 +1,4 @@
-import {Controller,Get,Post,Body,Patch,Param,Delete,UseFilters,Logger,UseGuards} from '@nestjs/common';
+import {Controller,Get,Post,Body,Patch,Param,Delete,UseFilters,Logger,UseGuards, Query} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from '../common/dto/create-product.dto';
 import { UpdateProductDto } from '../common/dto/update-product.dto';
@@ -22,15 +22,20 @@ export class ProductController {
     }
 
     @Get()
-    async findAll(): Promise<Product[]> {
-        return this.productService.getAllProducts();
+    async findAllProducts(@Query('page') page: number, @Query('limit') limit: number): Promise<Product[]> {
+        page = page || 1;
+        limit = limit || 10;
+        return this.productService.getAllProducts({ page, limit });
     }
 
-    // @Get('my-products')
-    // @UseGuards(AuthGuard)
-    // async findMyProducts(@CurrentUser() user: TokenPayload): Promise<Product[]> {
-    //     return this.productService.getProductsByid(user.id);
-    // }
+    @Get('my-products')
+    @UseGuards(AuthGuard)
+    async findMyProducts(@CurrentUser() user: UserTokenData, @Query('page') page: number, @Query('limit') limit: number): Promise<Product[]> {
+        page = page || 1;
+        limit = limit || 10;
+
+        return this.productService.getProductsByUserId(user, page, limit );
+    }
 
     @Get(':id')
     async findOne(@Param('id') id: string): Promise<Product> {
