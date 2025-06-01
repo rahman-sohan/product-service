@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { RabbitSubscribe, AmqpConnection } from '@golevelup/nestjs-rabbitmq';
+import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { MessagePatterns } from '../common/constants/message-patterns';
 import { TokenValidationResponse } from '../common/interfaces/auth.interface';
 
