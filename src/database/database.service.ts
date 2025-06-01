@@ -37,8 +37,8 @@ export class DatabaseService {
         return updatedProduct;
     }
 
-    async deleteProduct(id: string): Promise<void> {
-        const result = await this.productModel.findByIdAndDelete(new Types.ObjectId(id));
+    async deleteProduct(productId: string): Promise<void> {
+        const result = await this.productModel.findByIdAndDelete(new Types.ObjectId(productId));
         if (!result) {
             throw new NotFoundException('Product not found');
         }

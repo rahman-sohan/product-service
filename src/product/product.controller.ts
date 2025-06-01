@@ -37,30 +37,29 @@ export class ProductController {
         return this.productService.getProductsByUserId(user, page, limit );
     }
 
-    @Get(':id')
-    async findOne(@Param('id') id: string): Promise<Product> {
-        return this.productService.getProductById(id);
+    @Get(':productId')
+    async findOne(@Param('productId') productId: string): Promise<Product> {
+        return this.productService.getProductById(productId);
     }
 
-    @Patch(':id')
+    @Patch(':productId')
     @UseGuards(AuthGuard)
-    async update(
-        @Param('id') id: string,
-        @Body() updateProductDto: UpdateProductDto,
+    async updateProduct(
+        @Param('productId') productId: string,
+        @Body() updateProductPayload: UpdateProductDto,
         @CurrentUser() user: UserTokenData,
     ): Promise<Product> {
-        this.logger.log(`Update product with ID ${id} request received`);
-        return this.productService.updateProduct(id, user.id, updateProductDto);
+        return this.productService.updateProduct(productId, user.id, updateProductPayload);
     }
 
-    @Delete(':id')
+    @Delete(':productId')
     @UseGuards(AuthGuard)
     async remove(
-        @Param('id') id: string,
+        @Param('productId') productId: string,
         @CurrentUser() user: UserTokenData,
     ): Promise<{ message: string }> {
-        this.logger.log(`Delete product with ID ${id} request received`);
-        await this.productService.deleteProduct(id, user.id);
+        this.logger.log(`Delete product with ID ${productId} request received`);
+        await this.productService.deleteProduct(productId, user.id);
         return { message: 'Product deleted successfully' };
     }
 }

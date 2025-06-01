@@ -80,7 +80,7 @@ export class ProductService {
             this.logger.warn(
                 `User ${userId} attempted to access product ${productId} they don't own`,
             );
-            
+
             throw new UnauthorizedException('You do not have access to this product');
         }
 
@@ -92,7 +92,6 @@ export class ProductService {
         userId: string,
         updateProductDto: UpdateProductDto,
     ): Promise<Product> {
-        this.logger.log(`Updating product with ID ${productId} for user ${userId}`);
         const product = await this.databaseService.findProductById(productId);
 
         if (product.product_owner_id !== userId) {
@@ -125,9 +124,6 @@ export class ProductService {
     }
 
     async deleteProduct(productId: string, userId: string): Promise<void> {
-        this.logger.log(`Deleting product with ID ${productId} for user ${userId}`);
-
-        // First check if user owns the product
         const product = await this.databaseService.findProductById(productId);
 
         if (product.product_owner_id !== userId) {
