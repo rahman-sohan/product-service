@@ -27,17 +27,14 @@ import { MessagePatterns } from '../common/constants/message-patterns';
                     exchange: 'auth_service',
                     routingKey: ['user.created', 'user.updated'],
                 },
-               {
-                    name: 'token_validation_request',
-                    createQueueIfNotExists: true,
-                    exchange: 'auth_service',
-                    routingKey: [MessagePatterns.TOKEN_VALIDATION_REQUEST],
-                },
                 {
-                    name: 'token_validation_response',
+                    name: 'token_validation_queue',
                     createQueueIfNotExists: true,
                     exchange: 'auth_service',
-                    routingKey: [MessagePatterns.TOKEN_VALIDATION_RESPONSE],
+                    routingKey: [
+                        MessagePatterns.TOKEN_VALIDATION_REQUEST, 
+                        MessagePatterns.TOKEN_VALIDATION_RESPONSE
+                    ],
                 },
                 {
                     name: 'product_events',
