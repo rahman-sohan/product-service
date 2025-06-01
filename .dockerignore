@@ -1,0 +1,42 @@
+# Git
+.git
+.gitignore
+
+# Node.js
+node_modules
+npm-debug.log
+pnpm-debug.log
+
+# Build output
+dist
+build
+coverage
+
+# Environment variables
+.env
+.env.*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Test files
+test
+coverage
+
+# Docker
+docker-compose.yml
+.dockerignore
+Dockerfile

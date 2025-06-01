@@ -5,7 +5,7 @@ export const APP_CONFIG = {
     MONGO_URI: process.env.MONGO_URI ?? 'mongodb://localhost:27017/auth-service',
     JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET ?? 'sohaur_rahman',
     JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET ?? 'sohaur_rahman',
-    JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY ?? '15m',
+    JWT_ACCESS_EXPIRY: process.env.JWT_ACCESS_EXPIRY ?? '25m',
     JWT_REFRESH_EXPIRY: process.env.JWT_REFRESH_EXPIRY ?? '7d',
     RABBITMQ_URL: process.env.RABBITMQ_URL ?? 'amqp://localhost:5672',
 };
