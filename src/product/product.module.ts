@@ -5,7 +5,10 @@ import { DatabaseModule } from '../database/database.module';
 import { MessageBrokerRabbitmqModule } from '../message-broker-rabbitmq/message-broker-rabbitmq.module';
 
 @Module({
-    imports: [DatabaseModule, MessageBrokerRabbitmqModule],
+    imports: [
+        DatabaseModule, 
+        MessageBrokerRabbitmqModule
+    ],
     controllers: [ProductController],
     providers: [ProductService],
     exports: [ProductService],

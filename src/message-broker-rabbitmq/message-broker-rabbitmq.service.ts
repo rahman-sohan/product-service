@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AmqpConnection } from '@golevelup/nestjs-rabbitmq';
 import { TokenValidationResponse } from '../common/interfaces/auth.interface';
+import { MessagePatterns } from '../common/constants/message-patterns';
 
 @Injectable()
 export class MessageBrokerRabbitmqService {
@@ -10,10 +11,9 @@ export class MessageBrokerRabbitmqService {
 
     async publishToAuthExchange(params: any): Promise<any> {
         const { data, pattern } = params;
-        this.logger.log(`Publishing message to auth_service exchange with pattern: ${pattern}`);
 
         try {
-            if (pattern.includes('validate-token')) {
+            if (pattern === MessagePatterns.TOKEN_VALIDATION_REQUEST) {
                 return await this.amqpConnection.request<TokenValidationResponse>({
                     exchange: 'auth_service',
                     routingKey: pattern,
@@ -21,10 +21,10 @@ export class MessageBrokerRabbitmqService {
                         pattern,
                         data,
                     },
-                    timeout: 10000,
+                    timeout: 20000,
                 });
             }
-
+            
             await this.amqpConnection.publish('auth_service', pattern, {
                 pattern,
                 data,
@@ -36,4 +36,6 @@ export class MessageBrokerRabbitmqService {
             throw error;
         }
     }
+    
+    // Token validation moved to RabbitMQListenersService
 }

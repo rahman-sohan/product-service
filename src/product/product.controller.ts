@@ -18,7 +18,7 @@ export class ProductController {
     @Post()
     @UseGuards(AuthGuard)
     async create(@Body() createProductPayload: CreateProductDto, @CurrentUser() user: TokenPayload): Promise<Product> {
-        return this.productService.createProduct(user.userId, createProductPayload);
+        return this.productService.createProduct(user.id, createProductPayload);
     }
 
     @Get()
@@ -26,11 +26,11 @@ export class ProductController {
         return this.productService.getAllProducts();
     }
 
-    @Get('my-products')
-    @UseGuards(AuthGuard)
-    async findMyProducts(@CurrentUser() user: TokenPayload): Promise<Product[]> {
-        return this.productService.getProductsByUserId(user.userId);
-    }
+    // @Get('my-products')
+    // @UseGuards(AuthGuard)
+    // async findMyProducts(@CurrentUser() user: TokenPayload): Promise<Product[]> {
+    //     return this.productService.getProductsByid(user.id);
+    // }
 
     @Get(':id')
     async findOne(@Param('id') id: string): Promise<Product> {
@@ -45,7 +45,7 @@ export class ProductController {
         @CurrentUser() user: TokenPayload,
     ): Promise<Product> {
         this.logger.log(`Update product with ID ${id} request received`);
-        return this.productService.updateProduct(id, user.userId, updateProductDto);
+        return this.productService.updateProduct(id, user.id, updateProductDto);
     }
 
     @Delete(':id')
@@ -55,7 +55,7 @@ export class ProductController {
         @CurrentUser() user: TokenPayload,
     ): Promise<{ message: string }> {
         this.logger.log(`Delete product with ID ${id} request received`);
-        await this.productService.deleteProduct(id, user.userId);
+        await this.productService.deleteProduct(id, user.id);
         return { message: 'Product deleted successfully' };
     }
 }

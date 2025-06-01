@@ -4,6 +4,7 @@ import { DatabaseService } from '../database/database.service';
 import { CreateProductDto } from '../common/dto/create-product.dto';
 import { UpdateProductDto } from '../common/dto/update-product.dto';
 import { MessageBrokerRabbitmqService } from '../message-broker-rabbitmq/message-broker-rabbitmq.service';
+import { RabbitMQListenersService } from '../message-broker-rabbitmq/rabbit-listeners.service';
 import { MessagePatterns } from '../common/constants/message-patterns';
 import { TokenPayload } from '../common/interfaces/auth.interface';
 import { Product } from '../database/entities/product.entity';
@@ -15,16 +16,18 @@ export class ProductService {
     constructor(
         private readonly databaseService: DatabaseService,
         private readonly messageBroker: MessageBrokerRabbitmqService,
+        private readonly rabbitMQListenersService: RabbitMQListenersService,
     ) {}
 
     async validateUserToken(token: string): Promise<TokenPayload> {
         try {
-            const response = await this.messageBroker.publishToAuthExchange({
-                pattern: MessagePatterns.VALIDATE_USER_TOKEN,
-                data: { token },
-            });
+            const response = await this.rabbitMQListenersService.validateToken(token);
 
-            return response;
+            if (!response.isValid || !response.user) {
+                throw new UnauthorizedException('Invalid token');
+            }
+
+            return response.user;
         } catch (error) {
             this.logger.error(`Error validating token: ${error.message}`);
             throw new UnauthorizedException('Invalid or expired token');
@@ -43,8 +46,7 @@ export class ProductService {
     }
 
     async createProduct(userId: string, createProductPayload: CreateProductDto): Promise<Product> {
-        this.logger.log(`Creating new product for user ${userId}`);
-
+        
         const productData = {
             ...createProductPayload,
             product_owner_id: userId,
@@ -150,7 +152,6 @@ export class ProductService {
 
         await this.databaseService.deleteProduct(productId);
 
-        // Publish product deleted event
         try {
             await this.messageBroker.publishToAuthExchange({
                 pattern: MessagePatterns.PRODUCT_DELETED,
@@ -162,7 +163,6 @@ export class ProductService {
             });
         } catch (error) {
             this.logger.error(`Failed to publish product deleted event: ${error.message}`);
-            // Log the error but don't fail the operation
         }
     }
 

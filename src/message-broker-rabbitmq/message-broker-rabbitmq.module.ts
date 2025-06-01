@@ -27,14 +27,17 @@ import { MessagePatterns } from '../common/constants/message-patterns';
                     exchange: 'auth_service',
                     routingKey: ['user.created', 'user.updated'],
                 },
-                {
-                    name: 'auth_user_validation',
+               {
+                    name: 'token_validation_request',
                     createQueueIfNotExists: true,
                     exchange: 'auth_service',
-                    routingKey: [
-                        MessagePatterns.USER_VALIDATED,
-                        MessagePatterns.VALIDATE_USER_TOKEN,
-                    ],
+                    routingKey: [MessagePatterns.TOKEN_VALIDATION_REQUEST],
+                },
+                {
+                    name: 'token_validation_response',
+                    createQueueIfNotExists: true,
+                    exchange: 'auth_service',
+                    routingKey: [MessagePatterns.TOKEN_VALIDATION_RESPONSE],
                 },
                 {
                     name: 'product_events',
@@ -49,12 +52,14 @@ import { MessagePatterns } from '../common/constants/message-patterns';
             ],
             uri: APP_CONFIG.RABBITMQ_URL,
             enableControllerDiscovery: true,
-            connectionInitOptions: { wait: true },
+            connectionInitOptions: { wait: true, timeout: 30000 },
+            defaultRpcTimeout: 10000,
+            defaultExchangeType: 'direct',
         }),
     ],
 
     providers: [MessageBrokerRabbitmqService, RabbitMQListenersService],
 
-    exports: [MessageBrokerRabbitmqService, RabbitMQModule],
+    exports: [MessageBrokerRabbitmqService, RabbitMQListenersService, RabbitMQModule],
 })
 export class MessageBrokerRabbitmqModule {}

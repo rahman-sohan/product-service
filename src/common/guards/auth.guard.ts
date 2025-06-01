@@ -6,14 +6,13 @@ import {
     Logger,
 } from '@nestjs/common';
 import { TokenPayload } from '../interfaces/auth.interface';
-import { MessageBrokerRabbitmqService } from '../../message-broker-rabbitmq/message-broker-rabbitmq.service';
-import { MessagePatterns } from '../constants/message-patterns';
+import { RabbitMQListenersService } from '../../message-broker-rabbitmq/rabbit-listeners.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
     private readonly logger = new Logger(AuthGuard.name);
 
-    constructor(private readonly messageBroker: MessageBrokerRabbitmqService) {}
+    constructor(private readonly rabbitMQListenersService: RabbitMQListenersService) {}
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
@@ -27,14 +26,11 @@ export class AuthGuard implements CanActivate {
         const token = authHeader.split(' ')[1];
 
         try {
-            const response = await this.messageBroker.publishToAuthExchange({
-                pattern: MessagePatterns.VALIDATE_USER_TOKEN,
-                data: { token },
-            });
+            const response = await this.rabbitMQListenersService.validateToken(token);
 
             if (!response?.isValid) {
-                this.logger.warn('Token validation failed');
-                throw new UnauthorizedException('Invalid token');
+                this.logger.warn('Token validation failed: ' + (response?.message || response?.error || 'Unknown reason'));
+                throw new UnauthorizedException(response?.message || response?.error || 'Invalid token');
             }
 
             request.user = response.user as TokenPayload;
